@@ -1,0 +1,23 @@
+0.2 0.3
+A B C
+D E A F
+C F B
+--END--
+0.2 0.3
+Bread Jelly Peanut Butter
+Bread Butter
+Bread Jelly
+Bread Milk Butter
+Chips Milk
+Bread Chips
+Bread Milk
+Chips Jelly
+--END--
+0.5 0.3
+Bread Milk
+Bread Diaper Beer Eggs
+Milk Diaper Beer Coke
+Bread Milk Diaper Beer
+Bread Milk Diaper Coke
+--END--
+测试时只需要测试数据对应位置即可
