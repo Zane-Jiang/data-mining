@@ -19,7 +19,7 @@ public class Kmeans {
         bootKmeans();
     }
     public static void init() {
-        allPoints = MyTool.read_file("src/main/resources/text.txt");
+        allPoints = MyTool.read_file("src/main/resources/test.txt");
         K = MyTool.getK();
     }
     private static void bootKmeans() {
@@ -28,14 +28,18 @@ public class Kmeans {
         double currentSEE = getSSE();
         while(preSSE!=currentSEE  ){
             SSEList.add(currentSEE);
+
 //            更新每一轮的质心
             updateCentroids();
+
 //            根据计算的质心移动簇见的元素
             updateClusters();
+
 //            更新SSE
             preSSE = currentSEE;
             currentSEE=getSSE();
         }
+//        可视化展现
         showAllpoints();
         GUI.init(MyTool.getDataSet(allPoints),MyTool.getDataset(SSEList));
     }

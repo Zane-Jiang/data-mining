@@ -60,7 +60,7 @@ public class MyTool {
     {
         DefaultCategoryDataset mDataset = new DefaultCategoryDataset();
         for (int i = 1; i <= allSSE.size() ; i++) {
-            mDataset.addValue((double)allSSE.get(i-1),"SEE","第"+i+"次迭代");
+            mDataset.addValue((double)allSSE.get(i-1),"SEE",""+i);
         }
         return mDataset;
     }

@@ -19,7 +19,7 @@ public class GUI {
         //创建一个主窗口来显示面板
         JFrame frame = new JFrame("Kmeans");
         frame.setLocation(10, 0);
-        frame.setSize(900, 800);
+        frame.setSize(900, 900);
         //实现简单的散点图，设置基本的数据
         JFreeChart scatterChart = ChartFactory.createScatterPlot(
                 "聚类结果",// 图表标题
@@ -33,7 +33,7 @@ public class GUI {
         );
         //以面板显示
         ChartPanel chartPanel = new ChartPanel(scatterChart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(500, 400));
+        chartPanel.setPreferredSize(new java.awt.Dimension(400, 350));
 
         JFreeChart lineChart = ChartFactory.createLineChart(
                 "SEE迭代变化",//图名字
@@ -45,8 +45,8 @@ public class GUI {
                 true, // 采用标准生成器
                 false);// 是否生成超链接
         ChartPanel lineChartPanel = new ChartPanel(lineChart);
-        lineChartPanel.setPreferredSize(new java.awt.Dimension(500, 400));
-        lineChartPanel.setLocation(30,450);
+        lineChartPanel.setPreferredSize(new java.awt.Dimension(500, 350));
+        lineChartPanel.setLocation(30,400);
 
 
         JPanel jPanel = new JPanel();
