@@ -1,5 +1,9 @@
 package org.jiangze.utils;
 
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.jiangze.entil.Point;
 import org.jiangze.entil.Clusters;
 
@@ -50,5 +54,31 @@ public class MyTool {
             e.printStackTrace();
         }
         return allPoint;
+    }
+
+    public static CategoryDataset getDataset(ArrayList<Double> allSSE)
+    {
+        DefaultCategoryDataset mDataset = new DefaultCategoryDataset();
+        for (int i = 1; i <= allSSE.size() ; i++) {
+            mDataset.addValue((double)allSSE.get(i-1),"SEE","第"+i+"次迭代");
+        }
+        return mDataset;
+    }
+
+
+
+
+    public static XYSeriesCollection getDataSet(ArrayList<Clusters> allPoints) {
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        for (int j = 0; j < allPoints.size(); j++) {
+            Clusters clusters = allPoints.get(j);
+            XYSeries clusterSeries = new XYSeries("custers" + String.valueOf(j + 1));
+            for (int i = 0; i < clusters.size(); i++) {
+                Point point = clusters.getI(i);
+                clusterSeries.add(point.getX(), point.getY());
+            }
+            dataset.addSeries(clusterSeries);
+        }
+        return dataset;
     }
 }

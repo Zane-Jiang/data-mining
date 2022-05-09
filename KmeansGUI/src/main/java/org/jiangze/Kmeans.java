@@ -2,6 +2,7 @@ package org.jiangze;
 
 import org.jiangze.entil.Clusters;
 import org.jiangze.entil.Point;
+import org.jiangze.utils.GUI;
 import org.jiangze.utils.MyTool;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Map;
 public class Kmeans {
     private static int K = 0;
     private static ArrayList<Clusters> allPoints = null;
+    private static ArrayList<Double> SSEList = new ArrayList<>();
 
     public static void main(String[] args) {
         bootKmeans();
@@ -20,12 +22,12 @@ public class Kmeans {
         allPoints = MyTool.read_file("src/main/resources/text.txt");
         K = MyTool.getK();
     }
-
     private static void bootKmeans() {
         init();
         double preSSE = 0;
         double currentSEE = getSSE();
         while(preSSE!=currentSEE  ){
+            SSEList.add(currentSEE);
 //            更新每一轮的质心
             updateCentroids();
 //            根据计算的质心移动簇见的元素
@@ -35,6 +37,7 @@ public class Kmeans {
             currentSEE=getSSE();
         }
         showAllpoints();
+        GUI.init(MyTool.getDataSet(allPoints),MyTool.getDataset(SSEList));
     }
 
     private static void showAllpoints() {
@@ -91,14 +94,11 @@ public class Kmeans {
             allPoints.add((Clusters) entry.getValue());
         }
     }
-
     private static void updateCentroids() {
         for (Clusters clusters : allPoints) {
             clusters.updateCentroid();
         }
     }
-
-
     private static double getSSE() {
         double SEE = 0;
         for (Clusters clusters : allPoints) {
