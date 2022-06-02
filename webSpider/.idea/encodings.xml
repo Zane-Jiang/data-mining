@@ -3,7 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/cluster.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/main.py" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/preprocess.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/preproces_pkg.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/result/ a.txt" charset="GBK" />
     <file url="file://$PROJECT_DIR$/result/ title_list.txt" charset="GBK" />
     <file url="file://$PROJECT_DIR$/result/row_news/1.txt" charset="GBK" />

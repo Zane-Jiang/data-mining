@@ -1,11 +1,11 @@
 import shutil
 
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, DBSCAN
 from sklearn.externals import joblib
 import os
 
 class cluster:
-    def kmeans(tf_idf,num_clusters):
+    def kmeans(self,tf_idf,num_clusters):
         km_cluster = KMeans(n_clusters=num_clusters, max_iter=300, n_init=40,
                             init='k-means++', n_jobs=-1)
         '''
@@ -18,7 +18,9 @@ class cluster:
 
         # 返回各自文本的所被分配到的类索引
         result = km_cluster.fit_predict(tf_idf)
-        return result
+        print("Kmeans文件分类完毕\n%s" % result)
+        cluster.movefile(self,result, method='kmeans')
+
 
         # print("Predicting result:", result)
         # '''
@@ -33,7 +35,7 @@ class cluster:
         # # 程序下一次则可以直接load
         # # tfidf_vectorizer = joblib.load('tfidf_fit_result.pkl')
         # km_cluster = joblib.load('km_cluster_fit_result.pkl')
-    def movefile(clusters_result,method):
+    def movefile(self,clusters_result,method):
             souce_path = 'result/news/'
             # dic_path = 'result/clusters'
             filepaths = []
@@ -48,13 +50,18 @@ class cluster:
                     shutil.copyfile(souce_path+str(i+1)+".txt", filepath+'/'+str(i+1) + ".txt")
                 else:
                     filepaths.append(filepath)
-
                     try:
                         os.mkdir(filepath)
-                    except FileExistsError:
-                        continue
+                    except OSError:
+                        shutil.rmtree(filepath)
+                        print("删除原文件: %s"%filepath)
+                        os.mkdir(filepath)
+                        print("创建文件成功: %s"%filepath)
                     shutil.copyfile(souce_path+str(i+1)+".txt", filepath+'/'+str(i+1) + ".txt")
             print('文件移动完毕')
 
-
-
+    def db_scan(self,tf_idf,eps,min_points):
+        dbscan = DBSCAN(eps=eps,min_samples=min_points)
+        result = dbscan.fit_predict(tf_idf)
+        print("db_scan文件分类完毕\n%s" % result)
+        cluster.movefile(self,result, method='db_scan')
