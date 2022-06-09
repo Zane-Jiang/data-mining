@@ -15,29 +15,34 @@ class cluster:
         init: 制定初始值选择的算法
         n_jobs: 进程个数，为-1的时候是指默认跑满CPU,注意，这个对于单个初始值的计算始终只会使用单进程计算，并行计算只是针对与不同初始值的计算。比如n_init=10，n_jobs=40,  服务器上面有20个CPU可以开40个进程，最终只会开10个进程
         '''
-
         # 返回各自文本的所被分配到的类索引
         result = km_cluster.fit_predict(tf_idf)
         print("Kmeans文件分类完毕\n%s" % result)
         cluster.movefile(self,result, method='kmeans')
 
+    #
+    # def pca(self, weight, n_components=2):
+    #     """
+    #     PCA对数据进行降维
+    #     :param weights:
+    #     :param n_components:
+    #     :return:
+    #     """
+    #     pca = PCA(n_components=n_components)
+    #     print('pca done')
+    #     #pca = KernelPCA(kernel="rbf",n_components=n_components)
+    #     return pca.fit_transform(weight)
 
-        # print("Predicting result:", result)
-        # '''
-        # 每一次fit都是对数据进行拟合操作，
-        # 所以我们可以直接选择将拟合结果持久化，
-        # 然后预测的时候直接加载，进而节省时间。
-        # '''
-        #
-        # # joblib.dump(tfidf_vectorizer, 'tfidf_fit_result.pkl')
-        # joblib.dump(km_cluster, 'km_cluster_fit_result.pkl')
-        #
-        # # 程序下一次则可以直接load
-        # # tfidf_vectorizer = joblib.load('tfidf_fit_result.pkl')
-        # km_cluster = joblib.load('km_cluster_fit_result.pkl')
+
+
     def movefile(self,clusters_result,method):
             souce_path = 'result/news/'
             # dic_path = 'result/clusters'
+            for file in os.listdir('result'):
+                if file == method:
+                    shutil.rmtree('result\\'+file)
+                    # print("删除文件%s"%file)
+
             filepaths = []
             # print(clusters_result)
             try:
