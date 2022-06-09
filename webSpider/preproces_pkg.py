@@ -34,11 +34,12 @@ class prepross:
         for file in os.listdir(base_path_src):
             # os.rename(os.path.join(base_path_src, file), os.path.join(base_path_dic, str(num)) + ".txt")
             content = open(os.path.join(base_path_src, file),'r',encoding='utf-8').readline()
-            new_content = "".join(content.split())
+            new_content = "".join(content.split(" "))
             if new_content != "":
                 shutil.copyfile(os.path.join(base_path_src, file), base_path_dic + '/' + str(num) + ".txt")
                 num = num + 1
         print("共计%d条 文件预处理完毕" % num)
+        return num
 
 
     '''
