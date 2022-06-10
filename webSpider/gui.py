@@ -1,14 +1,19 @@
 import os
+import re
+import shutil
 
+import jieba
+import wordcloud
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import itertools
+import preproces_pkg
 import matplotlib.pyplot as plt
 class disp:
-
+    stop_words_path = 'resource/stopwords.txt'
     def get_pridict_lable(self,true_path,predict_path):
         '''
-        ¸ù¾İÊäÈëµØÖ·ÓëÊä³öµØÖ·£¬È·¶¨»ìÏı¾ØÕóµÄÊäÈëÊı×é
+        æ ¹æ®è¾“å…¥åœ°å€ä¸è¾“å‡ºåœ°å€ï¼Œç¡®å®šæ··æ·†çŸ©é˜µçš„è¾“å…¥æ•°ç»„
         :param true_path:
         :param predict_path:
         :return:
@@ -16,12 +21,10 @@ class disp:
         x_true = []
         for cluster_ in os.listdir(true_path):
             for item in os.listdir(true_path+"\\"+cluster_):
-                # x_true.append(item.split('.')[0])
                 x_true.append(cluster_)
         y_pridict = []
         for cluster_ in os.listdir(predict_path):
             for item in os.listdir(predict_path + "\\" + cluster_):
-                # y_pridict.append(item.split('.')[0])
                 y_pridict.append(cluster_)
         xy = []
         xy.append(x_true)
@@ -31,51 +34,88 @@ class disp:
     def get_confusion_matrix(self,xy):
         x_true = xy[0]
         y_predict = xy[1]
+        print(xy)
+
         return confusion_matrix(x_true,y_predict)
 
 
+    def process(self,basepath):
+        to_spilt_sentence = []
+        for file in os.listdir(basepath):
+            sentence = open(basepath+'/'+file, 'r',encoding='utf-8').readline()
+            pattern = re.compile('[^\u4e00-\u9fa5^a-z^A-Z^0-9]')
+            line = re.sub(pattern, '', sentence)
+            new_sentence = ''.join(line.split())
+            to_spilt_sentence.append(new_sentence)
+        row_words = [jieba.lcut(s) for s in to_spilt_sentence]
+        stop_words = set([item.strip() for item in open(self.stop_words_path, 'r', encoding='utf-8').readlines()])
+        corpus = []
+        for row_doc in row_words:
+            doc = ''
+            for word in row_doc:
+                if word in stop_words:
+                    continue
+                else:
+                    doc = doc + word + " "
+            corpus.append(doc)
+        return corpus
+
+
+    def disp_word_cloud(self,basepath,dir_name):
+        savepath = 'evaluation/wordcloud'
+        try:
+            shutil.rmtree(savepath+'/'+dir_name)
+        except FileNotFoundError:
+            print('åˆ›å»ºè¯äº‘å›¾æ–‡ä»¶ing')
+        print('æ›´æ–°è¯äº‘å›¾æ–‡ä»¶ing')
+        os.mkdir(savepath+'/'+dir_name)
+        for file in os.listdir(basepath):
+            w = wordcloud.WordCloud(font_path='evaluation/wordcloud/simhei.ttf')
+            text = ''.join(self.process(basepath+"/"+file))
+            print(text)
+            w.generate(text)
+
+            w.to_file(savepath+'/'+dir_name+"/"+file+"_wordcloud.png")
+
+
+    #å¼•ç”¨
+    def plot_confusion_matrix(self, target_names,true_path,predict_path,title='kmeans(k = 3) æ··æ·†çŸ©é˜µ(100æ¡)',cmap=None,normalize=False):
+        xy=self.get_pridict_lable(true_path,predict_path)
+        confusionMatrix = self.get_confusion_matrix(xy)
+        accuracy = np.trace(confusionMatrix) / float(np.sum(confusionMatrix)) #è®¡ç®—å‡†ç¡®ç‡
+        misclass = 1 - accuracy #è®¡ç®—é”™è¯¯ç‡
+        if cmap is None:
+            cmap = plt.get_cmap('Blues') #é¢œè‰²è®¾ç½®æˆè“è‰²
+
+        plt.figure(figsize=(8,7)) #è®¾ç½®çª—å£å°ºå¯¸
+        plt.imshow(confusionMatrix, interpolation='nearest', cmap=cmap) #æ˜¾ç¤ºå›¾ç‰‡
+        plt.title(title) #æ˜¾ç¤ºæ ‡é¢˜
+        plt.colorbar() #ç»˜åˆ¶é¢œè‰²æ¡
+        plt.rcParams["font.sans-serif"] = ["SimHei"]  # è®¾ç½®å­—ä½“
+        plt.rcParams["axes.unicode_minus"] = False  # è¯¥è¯­å¥è§£å†³å›¾åƒä¸­çš„â€œ-â€è´Ÿå·çš„ä¹±ç é—®é¢˜
+        if target_names is not None:
+            tick_marks = np.arange(len(target_names))
+            plt.xticks(tick_marks, target_names, rotation=45) #xåæ ‡æ ‡ç­¾æ—‹è½¬45åº¦
+            plt.yticks(tick_marks, target_names) #yåæ ‡
+        if normalize:
+            confusionMatrix = confusionMatrix.astype('float32') / confusionMatrix.sum(axis=1)
+            confusionMatrix = np.round(confusionMatrix,2) #å¯¹æ•°å­—ä¿ç•™ä¸¤ä½å°æ•°
+        thresh = confusionMatrix.max() / 1.5 if normalize else confusionMatrix.max() / 2
+        for i, j in itertools.product(range(confusionMatrix.shape[0]), range(confusionMatrix.shape[1])): #å°†cm.shape[0]ã€cm.shape[1]ä¸­çš„å…ƒç´ ç»„æˆå…ƒç»„ï¼Œéå†å…ƒç»„ä¸­æ¯ä¸€ä¸ªæ•°å­—
+            if normalize: #æ ‡å‡†åŒ–
+                plt.text(j, i, "{:0.2f}".format(confusionMatrix[i, j]), #ä¿ç•™ä¸¤ä½å°æ•°
+                        horizontalalignment="center",  #æ•°å­—åœ¨æ–¹æ¡†ä¸­é—´
+                        color="white" if confusionMatrix[i, j] > thresh else "black")  #è®¾ç½®å­—ä½“é¢œè‰²
+            else:  #éæ ‡å‡†åŒ–
+                plt.text(j, i, "{:,}".format(confusionMatrix[i, j]),
+                        horizontalalignment="center",  #æ•°å­—åœ¨æ–¹æ¡†ä¸­é—´
+                        color="white" if confusionMatrix[i, j] > thresh else "black") #è®¾ç½®å­—ä½“é¢œè‰²
+
+        plt.tight_layout() #è‡ªåŠ¨è°ƒæ•´å­å›¾å‚æ•°,ä½¿ä¹‹å¡«å……æ•´ä¸ªå›¾åƒåŒºåŸŸ
+        plt.ylabel('äººå·¥åˆ†ç±»') #yæ–¹å‘ä¸Šçš„æ ‡ç­¾
+        plt.xlabel("kmeansåˆ†ç±»(k=3)\n accuracy={:0.4f}\n misclass={:0.4f}".format(accuracy, misclass)) #xæ–¹å‘ä¸Šçš„æ ‡ç­¾
+        plt.show() #æ˜¾ç¤ºå›¾ç‰‡
 
 
 
 
-
-    # def plot_confusion_matrix(self,cm, target_names,title='Confusion matrix',cmap=None,normalize=False):
-    #     accuracy = np.trace(cm) / float(np.sum(cm)) #¼ÆËã×¼È·ÂÊ
-    #     misclass = 1 - accuracy #¼ÆËã´íÎóÂÊ
-    #     if cmap is None:
-    #         cmap = plt.get_cmap('Blues') #ÑÕÉ«ÉèÖÃ³ÉÀ¶É«
-    #     plt.figure(figsize=(10, 8)) #ÉèÖÃ´°¿Ú³ß´ç
-    #     plt.imshow(cm, interpolation='nearest', cmap=cmap) #ÏÔÊ¾Í¼Æ¬
-    #     plt.title(title) #ÏÔÊ¾±êÌâ
-    #     plt.colorbar() #»æÖÆÑÕÉ«Ìõ
-    #     if target_names is not None:
-    #         tick_marks = np.arange(len(target_names))
-    #         plt.xticks(tick_marks, target_names, rotation=45) #x×ø±ê±êÇ©Ğı×ª45¶È
-    #         plt.yticks(tick_marks, target_names) #y×ø±ê
-    #     if normalize:
-    #         cm = cm.astype('float32') / cm.sum(axis=1)
-    #         cm = np.round(cm,2) #¶ÔÊı×Ö±£ÁôÁ½Î»Ğ¡Êı
-    #     thresh = cm.max() / 1.5 if normalize else cm.max() / 2
-    #     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])): #½«cm.shape[0]¡¢cm.shape[1]ÖĞµÄÔªËØ×é³ÉÔª×é£¬±éÀúÔª×éÖĞÃ¿Ò»¸öÊı×Ö
-    #         if normalize: #±ê×¼»¯
-    #             plt.text(j, i, "{:0.2f}".format(cm[i, j]), #±£ÁôÁ½Î»Ğ¡Êı
-    #                     horizontalalignment="center",  #Êı×ÖÔÚ·½¿òÖĞ¼ä
-    #                     color="white" if cm[i, j] > thresh else "black")  #ÉèÖÃ×ÖÌåÑÕÉ«
-    #         else:  #·Ç±ê×¼»¯
-    #             plt.text(j, i, "{:,}".format(cm[i, j]),
-    #                     horizontalalignment="center",  #Êı×ÖÔÚ·½¿òÖĞ¼ä
-    #                     color="white" if cm[i, j] > thresh else "black") #ÉèÖÃ×ÖÌåÑÕÉ«
-    #
-    #     plt.tight_layout() #×Ô¶¯µ÷Õû×ÓÍ¼²ÎÊı,Ê¹Ö®Ìî³äÕû¸öÍ¼ÏñÇøÓò
-    #     plt.ylabel('True true') #y·½ÏòÉÏµÄ±êÇ©
-    #     plt.xlabel("Predicted true\naccuracy={:0.4f}\n misclass={:0.4f}".format(accuracy, misclass)) #x·½ÏòÉÏµÄ±êÇ©
-    #     plt.show() #ÏÔÊ¾Í¼Æ¬
-    #     labels = ['NORMAL','PNEUMONIA']
-    #     # Ô¤²âÑéÖ¤¼¯Êı¾İÕûÌå×¼È·ÂÊ
-    #     Y_pred = model.predict_generator(test_data_gen, total_test // batch_size + 1)
-    #     # ½«Ô¤²âµÄ½á¹û×ª»¯Îªone hitÏòÁ¿
-    #     Y_pred_classes = np.argmax(Y_pred, axis = 1)
-    #     # ¼ÆËã»ìÏı¾ØÕó
-    #     confusion_mtx = confusion_matrix(y_true = test_data_gen.classes,y_pred = Y_pred_classes)
-    #     # »æÖÆ»ìÏı¾ØÕó
-    #     plot_confusion_matrix(confusion_mtx, normalize=True, target_names=labels)

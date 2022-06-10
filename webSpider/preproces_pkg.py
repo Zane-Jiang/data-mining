@@ -4,8 +4,6 @@ import re
 import shutil
 
 import jieba
-import numpy as np
-from sklearn.externals import joblib
 
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
