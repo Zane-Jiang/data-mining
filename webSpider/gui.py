@@ -79,7 +79,7 @@ class disp:
 
 
     #引用
-    def plot_confusion_matrix(self, target_names,true_path,predict_path,title='kmeans(k = 3) 混淆矩阵(100条)',cmap=None,normalize=False):
+    def plot_confusion_matrix(self,target_names,true_path,predict_path,title,save_fig_path,xlable,ylable,cmap=None,normalize=False):
         xy=self.get_pridict_lable(true_path,predict_path)
         confusionMatrix = self.get_confusion_matrix(xy)
         accuracy = np.trace(confusionMatrix) / float(np.sum(confusionMatrix)) #计算准确率
@@ -87,7 +87,7 @@ class disp:
         if cmap is None:
             cmap = plt.get_cmap('Blues') #颜色设置成蓝色
 
-        plt.figure(figsize=(8,7)) #设置窗口尺寸
+        plt.figure(figsize=(7,6)) #设置窗口尺寸
         plt.imshow(confusionMatrix, interpolation='nearest', cmap=cmap) #显示图片
         plt.title(title) #显示标题
         plt.colorbar() #绘制颜色条
@@ -112,9 +112,12 @@ class disp:
                         color="white" if confusionMatrix[i, j] > thresh else "black") #设置字体颜色
 
         plt.tight_layout() #自动调整子图参数,使之填充整个图像区域
-        plt.ylabel('人工分类') #y方向上的标签
-        plt.xlabel("kmeans分类(k=3)\n accuracy={:0.4f}\n misclass={:0.4f}".format(accuracy, misclass)) #x方向上的标签
+        plt.ylabel(ylable) #y方向上的标签
+        plt.xlabel(xlable+"\n accuracy={:0.4f}\n misclass={:0.4f}".format(accuracy, misclass)) #x方向上的标签
+        plt.savefig(save_fig_path+"/"+title+".jpg",bbox_inches = 'tight')
         plt.show() #显示图片
+
+
 
 
 

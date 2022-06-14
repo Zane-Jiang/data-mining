@@ -1,11 +1,13 @@
 import shutil
 
+from lda import lda
 from sklearn.cluster import KMeans, DBSCAN
+from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.externals import joblib
 import os
 
 class cluster:
-    def kmeans(self,tf_idf,num_clusters):
+    def kmeans(self,tf_idf,num_clusters,dic_path,subfile_name):
         km_cluster = KMeans(n_clusters=num_clusters, max_iter=300, n_init=40,
                             init='k-means++', n_jobs=-1)
         '''
@@ -18,39 +20,53 @@ class cluster:
         # 返回各自文本的所被分配到的类索引
         result = km_cluster.fit_predict(tf_idf)
         print("Kmeans文件分类完毕\n%s" % result)
-        cluster.movefile(self,result, method='kmeans')
-
-    #
-    # def pca(self, weight, n_components=2):
-    #     """
-    #     PCA对数据进行降维
-    #     :param weights:
-    #     :param n_components:
-    #     :return:
-    #     """
-    #     pca = PCA(n_components=n_components)
-    #     print('pca done')
-    #     #pca = KernelPCA(kernel="rbf",n_components=n_components)
-    #     return pca.fit_transform(weight)
+        cluster.movefile(self,result,dic_path=dic_path, subfile_name=subfile_name)
 
 
 
-    def movefile(self,clusters_result,method):
+    def lda(self,X,num_clusters,dic_path,subfile_name):
+        model = lda.LDA(n_topics=num_clusters, n_iter=500, random_state=1)
+        model.fit(X)
+        doc_topic = model.doc_topic_
+        result = []
+        for n in range(doc_topic.shape[0]):
+            result.append(doc_topic[n].argmax())
+        print(result)
+        cluster.movefile(self, result, dic_path=dic_path, subfile_name=subfile_name)
+
+        # lda = LatentDirichletAllocation(
+        #     n_components=num_clusters, max_iter=50,
+        #     learning_method='online',
+        #     learning_offset=50.,
+        #     random_state=0)
+        # x = lda.fit(tf_idf)
+        #
+        # for adoc in lda.components_:
+        #     # print(max(adoc))
+        #     i = 0
+        #     for a in adoc:
+        #         i = i +1
+        #         print((str)(i)+"    "+str(adoc))
+
+        # print(lda.n_components)
+
+
+
+
+    def movefile(self,clusters_result,dic_path,subfile_name):
             souce_path = 'result/news/'
             # dic_path = 'result/clusters'
-            for file in os.listdir('result'):
-                if file == method:
-                    shutil.rmtree('result\\'+file)
-                    # print("删除文件%s"%file)
+            for file in os.listdir(dic_path):
+                if file == subfile_name:
+                    shutil.rmtree(dic_path+"/"+file)
 
             filepaths = []
-            # print(clusters_result)
             try:
-                os.mkdir('result/'+method+'/')
+                os.mkdir(dic_path+'/'+subfile_name+'/')
             except FileExistsError as  f:
                 print(f)
-            for i in range(0, len(clusters_result)-1):
-                filepath = 'result/'+method+'/'+str(clusters_result[i])
+            for i in range(0, len(clusters_result)):
+                filepath = dic_path+"/"+subfile_name+'/'+str(clusters_result[i])
                 if filepath in filepaths:
                     shutil.copyfile(souce_path+str(i+1)+".txt", filepath+'/'+str(i+1) + ".txt")
                 else:
